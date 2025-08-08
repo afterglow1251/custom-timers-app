@@ -1,9 +1,10 @@
-import { Context, Next } from 'koa';
+import { Next } from 'koa';
 import { plainToInstance } from 'class-transformer';
 import { validate as classValidate } from 'class-validator';
+import { TypedContext } from '../types/koa';
 
 export function validate<T extends object>(type: new () => T) {
-  return async (ctx: Context, next: Next) => {
+  return async (ctx: TypedContext, next: Next) => {
     const dtoObject = plainToInstance(type, ctx.request.body);
 
     const errors = await classValidate(dtoObject, {
