@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import app from './app';
 import { initializeDB } from './modules/database/init';
-import { getEnvOrThrow } from './utils/env';
+import { getEnvOrThrow } from './common/utils/env';
 
 async function bootstrap() {
   try {

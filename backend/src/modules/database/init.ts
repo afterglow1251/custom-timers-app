@@ -1,6 +1,6 @@
 import { sequelize } from './config';
 // not remove imports below! it is necessary for sequelize to load models
-import './models/User';
+import './models';
 
 export async function initializeDB() {
   try {

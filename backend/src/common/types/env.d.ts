@@ -11,6 +11,10 @@ declare namespace NodeJS {
     readonly DB_PASSWORD: string;
     readonly DB_NAME: string;
 
-    readonly SESSION_SECRET: string;
+    readonly ACCESS_SECRET: string;
+    readonly REFRESH_SECRET: string;
+
+    readonly ACCESS_TOKEN_EXPIRATION: string;
+    readonly REFRESH_TOKEN_EXPIRATION: string;
   }
 }
