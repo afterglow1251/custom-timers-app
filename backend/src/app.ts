@@ -4,7 +4,7 @@ import Router from '@koa/router';
 import session from 'koa-session';
 import bodyParser from 'koa-bodyparser';
 import { SESSION_CONFIG } from './config/session';
-import { getEnvOrThrow } from './utils/env';
+import { getEnvOrThrow } from './common/utils/env';
 
 const app = new Koa();
 const router = new Router();

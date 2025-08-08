@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import { getEnvOrThrow } from '../../../utils/env';
+import { getEnvOrThrow } from '../../../common/utils/env';
 
 export const sequelize = new Sequelize({
   database: getEnvOrThrow('DB_NAME'),
