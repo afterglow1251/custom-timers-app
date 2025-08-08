@@ -1,21 +1,26 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config';
+import bcrypt from 'bcrypt';
 
 type UserAttributes = {
   id: number;
-  username: string;
   email: string;
+  password: string;
 };
 
 type UserCreationAttributes = Optional<UserAttributes, 'id'>;
 
 export class User extends Model<UserAttributes, UserCreationAttributes> {
   declare id: number;
-  declare username: string;
   declare email: string;
+  declare password: string;
 
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
+
+  async comparePassword(plainPassword: string): Promise<boolean> {
+    return bcrypt.compare(plainPassword, this.password);
+  }
 }
 
 User.init(
@@ -25,11 +30,6 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    username: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-      unique: true,
-    },
     email: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -38,6 +38,10 @@ User.init(
         isEmail: true,
       },
     },
+    password: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
   },
   {
     sequelize,
@@ -45,3 +49,9 @@ User.init(
     timestamps: true,
   },
 );
+
+User.prototype.toJSON = function () {
+  const values = { ...this.get() } as any;
+  delete values.password;
+  return values;
+};
