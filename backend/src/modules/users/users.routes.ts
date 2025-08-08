@@ -39,7 +39,4 @@ router.delete(
   usersController.deleteUser.bind(usersController),
 );
 
-export default {
-  routes: () => router.routes(),
-  allowedMethods: () => router.allowedMethods(),
-};
+export default router;

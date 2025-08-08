@@ -9,7 +9,7 @@ export class UsersService {
     return await User.findOne({ where: { email } });
   }
 
-  async findById(id: number): Promise<User> {
+  async getById(id: number): Promise<User> {
     const user = await User.findByPk(id);
     if (!user) {
       throw new createHttpError.NotFound('User not found');
@@ -41,7 +41,7 @@ export class UsersService {
   async update(id: number, dto: UpdateUserDto): Promise<User> {
     const { email, password } = dto;
 
-    const user = await this.findById(id);
+    const user = await this.getById(id);
 
     if (email) {
       const existingUser = await this.findByEmail(email);
@@ -63,7 +63,7 @@ export class UsersService {
   }
 
   async delete(id: number): Promise<void> {
-    const user = await this.findById(id);
+    const user = await this.getById(id);
     await user.destroy();
   }
 
