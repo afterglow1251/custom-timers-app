@@ -31,7 +31,4 @@ router.post(
   authController.logout.bind(authController),
 );
 
-export default {
-  routes: () => router.routes(),
-  allowedMethods: () => router.allowedMethods(),
-};
+export default router;
