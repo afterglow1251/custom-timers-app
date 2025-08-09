@@ -2,7 +2,7 @@ import { UsersService, usersService } from './users.service';
 import { ContextWithIdParam, TypedContext } from '../../common/types/koa';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CheckEmailDto } from './dto/check-email.dto';
+import { CheckEmailDto } from '../auth/dto/check-email.dto';
 
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -43,13 +43,6 @@ export class UsersController {
     await this.usersService.delete(userId);
 
     ctx.status = 204;
-  }
-
-  async checkEmail(ctx: TypedContext<CheckEmailDto>) {
-    const { email } = ctx.request.body;
-    const user = await this.usersService.findByEmail(email);
-
-    ctx.body = { exists: !!user };
   }
 }
 
