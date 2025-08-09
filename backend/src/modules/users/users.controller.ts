@@ -26,7 +26,7 @@ export class UsersController {
     ctx.body = user;
   }
 
-  async updateUser(ctx: TypedContext<UpdateUserDto>) {
+  async updateUser(ctx: ContextWithIdParam<UpdateUserDto>) {
     const userId = +ctx.params.id;
 
     const updatedUser = await this.usersService.update(

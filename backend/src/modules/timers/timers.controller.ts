@@ -30,7 +30,7 @@ export class TimersController {
     ctx.body = timer;
   }
 
-  async updateTimer(ctx: TypedContext<UpdateTimerDto>) {
+  async updateTimer(ctx: ContextWithIdParam<UpdateTimerDto>) {
     const userId = ctx.state.user!.id;
     const timerId = +ctx.params.id;
 
