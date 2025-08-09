@@ -4,7 +4,7 @@ import { validate } from '../../common/middlewares/validate.middleware';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { authMiddleware } from '../../common/middlewares/auth.middleware';
-import { CheckEmailDto } from './dto/check-email.dto';
+import { CheckEmailDto } from '../auth/dto/check-email.dto';
 
 const router = new Router({ prefix: '/users' });
 
@@ -38,12 +38,6 @@ router.delete(
   '/:id',
   authMiddleware,
   usersController.deleteUser.bind(usersController),
-);
-
-router.post(
-  '/check-email',
-  validate(CheckEmailDto),
-  usersController.checkEmail.bind(usersController),
 );
 
 export default router;

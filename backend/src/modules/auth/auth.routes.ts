@@ -4,6 +4,7 @@ import { validate } from '../../common/middlewares/validate.middleware';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { authMiddleware } from '../../common/middlewares/auth.middleware';
+import { CheckEmailDto } from './dto/check-email.dto';
 
 const router = new Router({ prefix: '/auth' });
 
@@ -29,6 +30,12 @@ router.post(
   '/logout',
   authMiddleware,
   authController.logout.bind(authController),
+);
+
+router.post(
+  '/auth/check-email',
+  validate(CheckEmailDto),
+  authController.checkEmail.bind(authController),
 );
 
 export default router;
