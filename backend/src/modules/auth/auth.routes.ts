@@ -33,7 +33,7 @@ router.post(
 );
 
 router.post(
-  '/auth/check-email',
+  '/check-email',
   validate(CheckEmailDto),
   authController.checkEmail.bind(authController),
 );
