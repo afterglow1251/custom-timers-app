@@ -1,31 +1,39 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
+import { Storage } from '@ionic/storage-angular';
 import { User } from '../types/user.types';
 
 const USER_KEY = 'currentUser';
 
 @Injectable({ providedIn: 'root' })
 export class UserStateService {
-  private readonly _currentUser = signal<User | null>(this.loadUser());
+  private readonly storage = inject(Storage);
 
+  private readonly _currentUser = signal<User | null>(null);
   readonly currentUser = this._currentUser.asReadonly();
 
-  setUser(user: User): void {
-    this._currentUser.set(user);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  constructor() {
+    this.init();
   }
 
-  clearUser(): void {
-    this._currentUser.set(null);
-    localStorage.removeItem(USER_KEY);
-  }
-
-  private loadUser(): User | null {
-    const json = localStorage.getItem(USER_KEY);
-    if (!json) return null;
-    try {
-      return JSON.parse(json);
-    } catch {
-      return null;
+  private async init() {
+    await this.storage.create();
+    const storedUser = await this.storage.get(USER_KEY);
+    if (storedUser) {
+      try {
+        this._currentUser.set(storedUser as User);
+      } catch {
+        this._currentUser.set(null);
+      }
     }
+  }
+
+  async setUser(user: User): Promise<void> {
+    this._currentUser.set(user);
+    await this.storage.set(USER_KEY, user);
+  }
+
+  async clearUser(): Promise<void> {
+    this._currentUser.set(null);
+    await this.storage.remove(USER_KEY);
   }
 }

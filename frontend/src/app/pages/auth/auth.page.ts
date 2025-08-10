@@ -43,9 +43,7 @@ export class AuthPage {
       const email = this.emailForm.value.email!;
       this.currentEmail.set(email);
 
-      const emailExists = await firstValueFrom(
-        this.authService.checkEmail(email),
-      );
+      const emailExists = await this.authService.checkEmail(email);
 
       this.isLogin.set(emailExists);
       this.currentStep.set('password');
@@ -69,10 +67,10 @@ export class AuthPage {
       const password = this.passwordForm.value.password!;
 
       if (this.isLogin()) {
-        await firstValueFrom(this.authService.login({ email, password }));
+        await this.authService.login({ email, password });
         await this.showToast('Login successful!', 'success');
       } else {
-        await firstValueFrom(this.authService.register({ email, password }));
+        await this.authService.register({ email, password });
         await this.showToast('Registration successful!', 'success');
       }
 

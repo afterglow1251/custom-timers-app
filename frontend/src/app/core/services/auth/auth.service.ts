@@ -1,53 +1,62 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, firstValueFrom, tap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { scheduleTokenRefresh } from './utils/refresh-token.util';
 import { ACCESS_TOKEN } from './constants/auth-storage-keys.const';
 import { AuthPayload, AuthResponse } from './types/auth.types';
 import { AUTH_ENDPOINTS } from './constants/auth-endpoints.const';
 import { isValidToken } from './utils/token.utils';
 import { UserStateService } from 'src/app/shared/state/user-state.service';
+import { Storage } from '@ionic/storage-angular';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly userStateService = inject(UserStateService);
+  private readonly storage = inject(Storage);
 
-  private accessToken: string | null = localStorage.getItem(ACCESS_TOKEN);
+  private accessToken: string | null = null;
   private refreshTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    this.init().catch(console.error);
+  }
+
+  private async init() {
+    await this.storage.create();
+    this.accessToken = await this.storage.get(ACCESS_TOKEN);
     if (isValidToken(this.accessToken)) {
       this.startTokenRefreshCycle(this.accessToken);
     }
   }
 
-  checkEmail(email: string): Observable<boolean> {
-    return this.http
-      .post<{ exists: boolean }>(AUTH_ENDPOINTS.checkEmail, { email })
-      .pipe(map(({ exists }) => exists));
-  }
-
-  login(payload: AuthPayload): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(AUTH_ENDPOINTS.login, payload).pipe(
-      tap((response) => {
-        this.setAccessToken(response.accessToken);
-        this.userStateService.setUser(response.user);
-      }),
+  async checkEmail(email: string): Promise<boolean> {
+    const response = await firstValueFrom(
+      this.http.post<{ exists: boolean }>(AUTH_ENDPOINTS.checkEmail, { email }),
     );
+    return response.exists;
   }
 
-  register(payload: AuthPayload): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(AUTH_ENDPOINTS.register, payload).pipe(
-      tap((response) => {
-        this.setAccessToken(response.accessToken);
-        this.userStateService.setUser(response.user);
-      }),
+  async login(payload: AuthPayload): Promise<AuthResponse> {
+    const response = await firstValueFrom(
+      this.http.post<AuthResponse>(AUTH_ENDPOINTS.login, payload),
     );
+    await this.setAccessToken(response.accessToken);
+    this.userStateService.setUser(response.user);
+    return response;
   }
 
-  logout(): void {
-    this.clearAccessToken();
+  async register(payload: AuthPayload): Promise<AuthResponse> {
+    const response = await firstValueFrom(
+      this.http.post<AuthResponse>(AUTH_ENDPOINTS.register, payload),
+    );
+    await this.setAccessToken(response.accessToken);
+    this.userStateService.setUser(response.user);
+    return response;
+  }
+
+  async logout(): Promise<void> {
+    await this.clearAccessToken();
     this.userStateService.clearUser();
   }
 
@@ -55,17 +64,17 @@ export class AuthService {
     return this.accessToken;
   }
 
-  private clearAccessToken(): void {
+  private async clearAccessToken(): Promise<void> {
     this.accessToken = null;
-    localStorage.removeItem(ACCESS_TOKEN);
+    await this.storage.remove(ACCESS_TOKEN);
     this.clearRefreshCycle();
   }
 
-  private setAccessToken(token: string): void {
+  private async setAccessToken(token: string): Promise<void> {
     this.accessToken = token;
-    localStorage.setItem(ACCESS_TOKEN, token);
+    await this.storage.set(ACCESS_TOKEN, token);
     this.clearRefreshCycle();
-    this.startTokenRefreshCycle(token);
+    await this.startTokenRefreshCycle(token);
   }
 
   private clearRefreshCycle(): void {
@@ -75,9 +84,9 @@ export class AuthService {
     }
   }
 
-  private startTokenRefreshCycle(token: string): void {
+  private async startTokenRefreshCycle(token: string): Promise<void> {
     if (!isValidToken(token)) {
-      this.clearAccessToken();
+      await this.clearAccessToken();
       return;
     }
 
@@ -96,7 +105,7 @@ export class AuthService {
         withCredentials: true,
       }),
     );
-    this.setAccessToken(response.accessToken);
+    await this.setAccessToken(response.accessToken);
     return response.accessToken;
   }
 }
