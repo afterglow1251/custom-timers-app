@@ -25,11 +25,14 @@ export class AuthController {
   }
 
   async login(ctx: TypedContext<LoginUserDto>) {
-    const tokens = await authService.login(ctx.request.body);
+    const { user, tokens } = await authService.login(ctx.request.body);
 
     setRefreshTokenCookie(ctx, tokens.refreshToken);
 
-    ctx.body = { accessToken: tokens.accessToken };
+    ctx.body = {
+      accessToken: tokens.accessToken,
+      user,
+    };
   }
 
   async refresh(ctx: TypedContext) {
