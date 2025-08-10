@@ -1,0 +1,87 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      @if (currentStep() === 'email') { Welcome } @else { {{ isLogin() ? 'Login'
+      : 'Create Account' }} }
+    </ion-title>
+
+    @if (currentStep() === 'password') {
+    <ion-buttons slot="start">
+      <ion-button (click)="goBackToEmail()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="container">
+    <ion-card>
+      <ion-card-header>
+        @if (currentStep() === 'email') {
+        <ion-card-title>Timer Challenge</ion-card-title>
+        } @else {
+        <ion-card-title>
+          {{ isLogin() ? 'Welcome Back' : 'Create Account' }}
+        </ion-card-title>
+
+        <div>
+          <ion-chip color="primary">
+            <ion-icon name="mail" />
+            <ion-label>{{ currentEmail() }}</ion-label>
+          </ion-chip>
+        </div>
+        }
+      </ion-card-header>
+
+      <ion-card-content>
+        @if (currentStep() === 'email') {
+        <form [formGroup]="emailForm" (ngSubmit)="onEmailSubmit()">
+          <ion-input
+            type="email"
+            fill="outline"
+            label-placement="floating"
+            label="Email"
+            formControlName="email"
+            [class.ion-invalid]="emailForm.get('email')?.invalid && emailForm.get('email')?.touched"
+          />
+
+          <ion-button
+            expand="block"
+            type="submit"
+            [disabled]="emailForm.invalid || isLoading()"
+            class="ion-margin-top"
+          >
+            @if (isLoading()) {
+            <ion-spinner name="crescent" />
+            } @else { Continue }
+          </ion-button>
+        </form>
+        } @else {
+        <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()">
+          <ion-input
+            type="password"
+            fill="outline"
+            label-placement="floating"
+            label="Password"
+            formControlName="password"
+            [class.ion-invalid]="passwordForm.get('password')?.invalid && passwordForm.get('password')?.touched"
+          />
+
+          <ion-button
+            expand="block"
+            type="submit"
+            [disabled]="passwordForm.invalid || isLoading()"
+            class="ion-margin-top"
+          >
+            @if (isLoading()) {
+            <ion-spinner name="crescent" />
+            } @else { {{ isLogin() ? 'Login' : 'Create Account' }} }
+          </ion-button>
+        </form>
+        }
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
