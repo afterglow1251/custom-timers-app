@@ -20,11 +20,7 @@ router.post(
   authController.login.bind(authController),
 );
 
-router.post(
-  '/refresh',
-  authMiddleware,
-  authController.refresh.bind(authController),
-);
+router.post('/refresh', authController.refresh.bind(authController));
 
 router.post(
   '/logout',

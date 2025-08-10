@@ -8,6 +8,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from './utils/jwt.utils';
+import { User } from '../database/models/User';
 
 export class AuthService {
   constructor(private readonly usersService: UsersService) {}
@@ -19,15 +20,22 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginUserDto): Promise<TokenPair> {
+  async login(dto: LoginUserDto): Promise<{
+    user: User;
+    tokens: TokenPair;
+  }> {
     const user = await this.validateUser(dto.email, dto.password);
-
     if (!user) {
       throw new createHttpError.Unauthorized('Invalid email or password');
     }
 
     const payload = { id: user.id, email: user.email };
-    return this.generateTokens(payload);
+    const tokens = this.generateTokens(payload);
+
+    return {
+      user,
+      tokens,
+    };
   }
 
   async refresh(refreshToken: string): Promise<TokenPair> {
@@ -39,7 +47,10 @@ export class AuthService {
     }
   }
 
-  private async validateUser(email: string, password: string) {
+  private async validateUser(
+    email: string,
+    password: string,
+  ): Promise<User | null> {
     const user = await this.usersService.findByEmail(email);
     if (!user) return null;
 
