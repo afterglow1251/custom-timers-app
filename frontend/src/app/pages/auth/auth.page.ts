@@ -1,31 +1,34 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { APP_ROUTES } from 'src/app/shared/constants/routes';
+import { HeaderComponent } from 'src/app/components/layout/header/header.component';
+import { strictEmailValidator } from 'src/app/shared/utils/validation/email';
+import { ToastService } from 'src/app/core/services/toast/toast.service';
 
-type AuthStep = 'email' | 'password';
+type CurrentStep = 'email' | 'password';
 
 @Component({
   selector: 'app-auth',
-  imports: [IonicModule, ReactiveFormsModule],
+  imports: [IonicModule, ReactiveFormsModule, HeaderComponent],
   templateUrl: 'auth.page.html',
   styleUrl: 'auth.page.scss',
 })
 export class AuthPage {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private toastController = inject(ToastController);
+  private toastService = inject(ToastService);
   private router = inject(Router);
 
-  currentStep = signal<AuthStep>('email');
+  currentStep = signal<CurrentStep>('email');
+  currentEmail = signal('');
   isLogin = signal(false);
   isLoading = signal(false);
-  currentEmail = signal('');
 
   emailForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, strictEmailValidator()]],
   });
 
   passwordForm = this.fb.group({
@@ -40,7 +43,7 @@ export class AuthPage {
     this.isLoading.set(true);
 
     try {
-      const email = this.emailForm.value.email!;
+      const email = this.emailForm.value.email!.trim().toLowerCase();
       this.currentEmail.set(email);
 
       const emailExists = await this.authService.checkEmail(email);
@@ -49,7 +52,7 @@ export class AuthPage {
       this.currentStep.set('password');
     } catch (error: any) {
       const message = error?.error?.message || 'Failed to check email';
-      await this.showToast(message, 'danger');
+      await this.toastService.show(message, 'danger');
     } finally {
       this.isLoading.set(false);
     }
@@ -68,16 +71,14 @@ export class AuthPage {
 
       if (this.isLogin()) {
         await this.authService.login({ email, password });
-        await this.showToast('Login successful!', 'success');
       } else {
         await this.authService.register({ email, password });
-        await this.showToast('Registration successful!', 'success');
       }
 
-      await this.router.navigate(['/timer']);
+      this.router.navigate([APP_ROUTES.timer]);
     } catch (error: any) {
       const message = error?.error?.message || 'Authentication failed';
-      await this.showToast(message, 'danger');
+      await this.toastService.show(message, 'danger');
     } finally {
       this.isLoading.set(false);
     }
@@ -86,39 +87,6 @@ export class AuthPage {
   goBackToEmail() {
     this.currentStep.set('email');
     this.passwordForm.reset();
-    this.currentEmail.set('');
     this.isLogin.set(false);
-  }
-
-  private async showToast(message: string, color: 'success' | 'danger') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color,
-      position: 'top',
-    });
-    await toast.present();
-  }
-
-  get emailError() {
-    const emailControl = this.emailForm.get('email');
-    if (emailControl?.errors?.['required']) {
-      return 'Email is required';
-    }
-    if (emailControl?.errors?.['email']) {
-      return 'Please enter a valid email';
-    }
-    return null;
-  }
-
-  get passwordError() {
-    const passwordControl = this.passwordForm.get('password');
-    if (passwordControl?.errors?.['required']) {
-      return 'Password is required';
-    }
-    if (passwordControl?.errors?.['minlength']) {
-      return 'Password must be at least 6 characters';
-    }
-    return null;
   }
 }

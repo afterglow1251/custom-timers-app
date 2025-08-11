@@ -1,26 +1,17 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>
-      @if (currentStep() === 'email') { Welcome } @else { {{ isLogin() ? 'Login'
-      : 'Create Account' }} }
-    </ion-title>
+<app-header>
+  @if( currentStep() === 'password') {
+  <ion-button slot="start" fill="clear" (click)="goBackToEmail()">
+    <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+  </ion-button>
+  }
+</app-header>
 
-    @if (currentStep() === 'password') {
-    <ion-buttons slot="start">
-      <ion-button (click)="goBackToEmail()">
-        <ion-icon name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    }
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
+<ion-content [scrollY]="false" class="ion-padding">
   <div class="container">
     <ion-card>
       <ion-card-header>
         @if (currentStep() === 'email') {
-        <ion-card-title>Timer Challenge</ion-card-title>
+        <ion-card-title>Authentication</ion-card-title>
         } @else {
         <ion-card-title>
           {{ isLogin() ? 'Welcome Back' : 'Create Account' }}
@@ -77,7 +68,7 @@
           >
             @if (isLoading()) {
             <ion-spinner name="crescent" />
-            } @else { {{ isLogin() ? 'Login' : 'Create Account' }} }
+            } @else { {{ isLogin() ? 'Log in' : 'Sign up' }} }
           </ion-button>
         </form>
         }

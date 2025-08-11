@@ -1,0 +1,119 @@
+<app-header />
+
+<ion-content class="ion-padding">
+  @if (timer()) {
+  <div class="timer-execution-container">
+    @if (currentPhase() === 'finished') {
+    <div class="finished-state">
+      <h1>Workout Complete!</h1>
+      <p>Great job! You've finished all {{ timer()!.rounds }} rounds.</p>
+
+      <div class="workout-summary">
+        <h3>Workout Summary</h3>
+        <div class="summary-item">
+          <span class="label">Timer:</span>
+          <span class="value">{{ timer()!.name }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Total Rounds:</span>
+          <span class="value">{{ timer()!.rounds }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Total Exercise Time:</span>
+          <span class="value">{{ totalExerciseTime() }}s</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Total Rest Time:</span>
+          <span class="value">{{ totalRestTime() }}s</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Total Workout Time:</span>
+          <span class="value">{{ formatTime(totalWorkoutTime()) }}</span>
+        </div>
+      </div>
+
+      <ion-button expand="block" (click)="restartTimer()" color="primary">
+        Do It Again
+      </ion-button>
+
+      <ion-button expand="block" fill="outline" (click)="goBack()">
+        Back to Timers
+      </ion-button>
+    </div>
+    } @else {
+    <div class="timer-active-state">
+      <div class="phase-indicator">
+        <div
+          class="phase-badge"
+          [class.exercise]="currentPhase() === 'exercise'"
+          [class.rest]="currentPhase() === 'rest'"
+        >
+          @if (currentPhase() === 'exercise') {
+          <span>EXERCISE</span>
+          } @else {
+          <span>REST</span>
+          }
+        </div>
+      </div>
+
+      <div class="countdown-display">
+        <div
+          class="countdown-circle"
+          [class.exercise]="currentPhase() === 'exercise'"
+          [class.rest]="currentPhase() === 'rest'"
+        >
+          <span class="countdown-time">{{ timeLeft() }}</span>
+          <span class="countdown-label">seconds</span>
+        </div>
+      </div>
+
+      <div class="progress-info">
+        <div class="round-info">
+          <h2>Round {{ currentRound() }} of {{ timer()!.rounds }}</h2>
+          <ion-progress-bar
+            [value]="roundProgress()"
+            color="primary"
+          ></ion-progress-bar>
+        </div>
+
+        <div class="phase-times">
+          <div class="phase-time">
+            <span>Exercise: {{ timer()!.exerciseTime }}s</span>
+          </div>
+          <div class="phase-time">
+            <span>Rest: {{ timer()!.restTime }}s</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-buttons">
+        @if (isPaused()) {
+        <ion-button expand="block" (click)="resumeTimer()" color="success">
+          Resume
+        </ion-button>
+        } @else {
+        <ion-button expand="block" (click)="pauseTimer()" color="warning">
+          Pause
+        </ion-button>
+        }
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="stopTimer()"
+          color="danger"
+        >
+          Stop Workout
+        </ion-button>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="error-state">
+    <h2>No Timer Selected</h2>
+    <p>Please go back and select a timer to start your workout.</p>
+    <ion-button expand="block" (click)="goBack()"> Back to Timers </ion-button>
+  </div>
+  }
+</ion-content>

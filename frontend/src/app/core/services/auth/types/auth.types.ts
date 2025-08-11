@@ -1,4 +1,4 @@
-import { User } from 'src/app/shared/types/user.types';
+import { User, UserNoPassword } from 'src/app/shared/types/user.types';
 
 export interface AuthPayload {
   email: string;
@@ -6,6 +6,6 @@ export interface AuthPayload {
 }
 
 export interface AuthResponse {
-  user: User;
+  user: UserNoPassword;
   accessToken: string;
 }
