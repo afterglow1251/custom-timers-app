@@ -35,6 +35,10 @@ export class AuthPage {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
+  ionViewWillEnter() {
+    this.resetState();
+  }
+
   async onEmailSubmit() {
     if (this.emailForm.invalid || this.isLoading()) {
       return;
@@ -88,5 +92,14 @@ export class AuthPage {
     this.currentStep.set('email');
     this.passwordForm.reset();
     this.isLogin.set(false);
+  }
+
+  resetState() {
+    this.currentStep.set('email');
+    this.currentEmail.set('');
+    this.isLogin.set(false);
+    this.isLoading.set(false);
+    this.emailForm.reset();
+    this.passwordForm.reset();
   }
 }

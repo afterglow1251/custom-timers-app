@@ -17,7 +17,7 @@ import { TimerStateService } from 'src/app/shared/state/timer-state.service';
   templateUrl: 'timer.page.html',
   styleUrl: 'timer.page.scss',
 })
-export class TimerPage implements OnInit {
+export class TimerPage {
   private fb = inject(FormBuilder);
   private timerService = inject(TimerService);
   private toastService = inject(ToastService);
@@ -38,12 +38,13 @@ export class TimerPage implements OnInit {
     rounds: [3, [Validators.required, Validators.min(1)]],
   });
 
-  async ngOnInit() {
-    await this.loadTimers();
+  ionViewWillEnter() {
+    this.loadTimers();
   }
 
   async loadTimers() {
     this.isLoading.set(true);
+    this.timers.set([]);
     try {
       const timers = await firstValueFrom(this.timerService.getAllTimers());
       this.timers.set(timers);

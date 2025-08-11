@@ -5,49 +5,79 @@ import {
   HttpEvent,
   HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, throwError, from } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { Observable, throwError, from, BehaviorSubject } from 'rxjs';
+import { catchError, filter, switchMap, take } from 'rxjs/operators';
 import { AuthService } from '../auth.service';
-import { AUTH_WHITELIST } from '../constants/auth-endpoints.const';
+import {
+  AUTH_ENDPOINTS,
+  AUTH_WHITELIST,
+} from '../constants/auth-endpoints.const';
 
 const urlsWithoutToken = new Set<string>(AUTH_WHITELIST);
 
+let isRefreshing = false;
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+
 export function authInterceptor(
   req: HttpRequest<unknown>,
-  next: HttpHandlerFn
+  next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> {
   const authService = inject(AuthService);
 
-  const isExcluded = urlsWithoutToken.has(req.url);
-
-  if (isExcluded) {
+  if (urlsWithoutToken.has(req.url)) {
     return next(req);
   }
 
   const token = authService.getTokenSync();
 
-  const authReq = token
-    ? req.clone({
-        headers: req.headers.set('Authorization', `Bearer ${token}`),
-      })
-    : req;
+  if (!token) {
+    return throwError(() => new Error('No access token available'));
+  }
+
+  const authReq = req.clone({
+    setHeaders: { Authorization: `Bearer ${token}` },
+  });
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+      if (error.status !== 401) {
+        return throwError(() => error);
+      }
+
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshTokenSubject.next(null);
+
         return from(authService.refreshToken()).pipe(
           switchMap((newToken) => {
-            const newReq = req.clone({
-              headers: req.headers.set('Authorization', `Bearer ${newToken}`),
-            });
-            return next(newReq);
+            isRefreshing = false;
+            refreshTokenSubject.next(newToken);
+
+            return next(
+              req.clone({
+                setHeaders: { Authorization: `Bearer ${newToken}` },
+              }),
+            );
           }),
-          catchError((refreshError: unknown) => {
+          catchError((refreshError) => {
+            isRefreshing = false;
+            authService.logout();
             return throwError(() => refreshError);
-          })
+          }),
         );
       }
-      return throwError(() => error);
-    })
+
+      return refreshTokenSubject.pipe(
+        filter((token) => token !== null),
+        take(1),
+        switchMap((newToken) =>
+          next(
+            req.clone({
+              setHeaders: { Authorization: `Bearer ${newToken}` },
+            }),
+          ),
+        ),
+      );
+    }),
   );
 }
