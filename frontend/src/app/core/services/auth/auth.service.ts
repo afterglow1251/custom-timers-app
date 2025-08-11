@@ -1,32 +1,55 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
-import { scheduleTokenRefresh } from './utils/refresh-token.util';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { ACCESS_TOKEN } from './constants/auth-storage-keys.const';
 import { AuthPayload, AuthResponse } from './types/auth.types';
 import { AUTH_ENDPOINTS } from './constants/auth-endpoints.const';
 import { isValidToken } from './utils/token.utils';
 import { UserStateService } from 'src/app/shared/state/user-state.service';
 import { Storage } from '@ionic/storage-angular';
+import { Router } from '@angular/router';
+import { APP_ROUTES } from 'src/app/shared/constants/routes';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
+
   private readonly http = inject(HttpClient);
   private readonly userStateService = inject(UserStateService);
   private readonly storage = inject(Storage);
+  private readonly router = inject(Router);
 
-  private accessToken: string | null = null;
-  private refreshTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private accessTokenSubject = new BehaviorSubject<string | null>(null);
+  accessToken$ = this.accessTokenSubject.asObservable();
 
   constructor() {
     this.init().catch(console.error);
   }
 
-  private async init() {
-    await this.storage.create();
-    this.accessToken = await this.storage.get(ACCESS_TOKEN);
-    if (isValidToken(this.accessToken)) {
-      this.startTokenRefreshCycle(this.accessToken);
+  public async ensureInitialized(): Promise<void> {
+    if (this.isInitialized) return;
+    if (!this.initPromise) {
+      this.initPromise = this.init();
+    }
+    await this.initPromise;
+    this.isInitialized = true;
+  }
+
+  private async init(): Promise<void> {
+    try {
+      await this.storage.create();
+      const token = await this.storage.get(ACCESS_TOKEN);
+
+      if (isValidToken(token)) {
+        this.accessTokenSubject.next(token);
+      } else {
+        await this.clearAccessToken();
+      }
+    } catch (error) {
+      console.error('Auth init failed:', error);
+      await this.clearAccessToken();
+      throw error;
     }
   }
 
@@ -56,47 +79,31 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
+    const token = this.getTokenSync();
+    if (token) {
+      await firstValueFrom(
+        this.http.post<void>(AUTH_ENDPOINTS.logout, null, {
+          withCredentials: true,
+        }),
+      );
+    }
     await this.clearAccessToken();
     this.userStateService.clearUser();
+    this.router.navigate([APP_ROUTES.home]);
   }
 
   getTokenSync(): string | null {
-    return this.accessToken;
+    return this.accessTokenSubject.value;
   }
 
   private async clearAccessToken(): Promise<void> {
-    this.accessToken = null;
+    this.accessTokenSubject.next(null);
     await this.storage.remove(ACCESS_TOKEN);
-    this.clearRefreshCycle();
   }
 
   private async setAccessToken(token: string): Promise<void> {
-    this.accessToken = token;
+    this.accessTokenSubject.next(token);
     await this.storage.set(ACCESS_TOKEN, token);
-    this.clearRefreshCycle();
-    await this.startTokenRefreshCycle(token);
-  }
-
-  private clearRefreshCycle(): void {
-    if (this.refreshTimeoutId !== null) {
-      clearTimeout(this.refreshTimeoutId);
-      this.refreshTimeoutId = null;
-    }
-  }
-
-  private async startTokenRefreshCycle(token: string): Promise<void> {
-    if (!isValidToken(token)) {
-      await this.clearAccessToken();
-      return;
-    }
-
-    this.refreshTimeoutId = scheduleTokenRefresh(
-      token,
-      () => this.refreshToken(),
-      (newToken) => {
-        this.setAccessToken(newToken);
-      },
-    );
   }
 
   async refreshToken(): Promise<string> {
