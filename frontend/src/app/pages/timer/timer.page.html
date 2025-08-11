@@ -1,0 +1,160 @@
+<app-header />
+
+<ion-content class="ion-padding">
+  <div class="timer-container">
+    <ion-button
+      expand="block"
+      fill="outline"
+      (click)="showAddTimerModal()"
+      class="ion-margin-bottom"
+    >
+      <ion-icon name="add" slot="start"></ion-icon>
+      Add New Timer
+    </ion-button>
+
+    @if (isLoading()) {
+    <div class="center-content">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+    } @if (!isLoading() && timers().length === 0) {
+    <div class="center-content">
+      <ion-icon name="timer-outline" size="large" color="medium"></ion-icon>
+      <h3>No timers yet</h3>
+      <p>Create your first timer to get started!</p>
+    </div>
+    }
+
+    <!-- Timers List -->
+    @if (timers().length > 0) { @for (timer of timers(); track timer.id) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ timer.name }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content style="margin-top: 10px">
+        <div class="timer-details">
+          <div class="detail-item">
+            <span>Exercise: {{ timer.exerciseTime }}s</span>
+          </div>
+          <div class="detail-item">
+            <span>Rest: {{ timer.restTime }}s</span>
+          </div>
+          <div class="detail-item">
+            <span>Rounds: {{ timer.rounds }}</span>
+          </div>
+        </div>
+
+        <div class="timer-actions">
+          <ion-button fill="solid" color="success" (click)="startTimer(timer)">
+            Start
+          </ion-button>
+
+          <ion-button fill="outline" color="primary" (click)="editTimer(timer)">
+            Edit
+          </ion-button>
+
+          <ion-button
+            fill="outline"
+            color="danger"
+            (click)="deleteTimer(timer)"
+          >
+            Delete
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+    } }
+  </div>
+
+  <!-- Add/Edit Timer Modal -->
+  <ion-modal [isOpen]="showModal()" (didDismiss)="closeModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeModal()">
+              <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title
+            >{{ editingTimer() ? 'Edit Timer' : 'Add New Timer' }}</ion-title
+          >
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <form [formGroup]="timerForm" (ngSubmit)="saveTimer()">
+          <ion-input
+            fill="outline"
+            label-placement="floating"
+            label="Timer Name"
+            formControlName="name"
+            [class.ion-invalid]="
+                  timerForm.get('name')?.invalid &&
+                  timerForm.get('name')?.touched
+                "
+            class="ion-margin-bottom"
+          />
+
+          <ion-input
+            type="number"
+            fill="outline"
+            label-placement="floating"
+            label="Exercise Time (seconds)"
+            formControlName="exerciseTime"
+            min="1"
+            [class.ion-invalid]="
+                  timerForm.get('exerciseTime')?.invalid &&
+                  timerForm.get('exerciseTime')?.touched
+                "
+            class="ion-margin-bottom"
+          />
+
+          <ion-input
+            type="number"
+            fill="outline"
+            label-placement="floating"
+            label="Rest Time (seconds)"
+            formControlName="restTime"
+            min="1"
+            [class.ion-invalid]="
+                  timerForm.get('restTime')?.invalid &&
+                  timerForm.get('restTime')?.touched
+                "
+            class="ion-margin-bottom"
+          />
+
+          <ion-input
+            type="number"
+            fill="outline"
+            label-placement="floating"
+            label="Number of Rounds"
+            formControlName="rounds"
+            min="1"
+            [class.ion-invalid]="
+                  timerForm.get('rounds')?.invalid &&
+                  timerForm.get('rounds')?.touched
+                "
+            class="ion-margin-bottom"
+          />
+
+          <ion-button
+            expand="block"
+            type="submit"
+            [disabled]="timerForm.invalid || isSaving()"
+            color="primary"
+          >
+            @if (isSaving()) {
+            <ion-spinner name="crescent"></ion-spinner>
+            } @else { {{ editingTimer() ? 'Update Timer' : 'Create Timer' }} }
+          </ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

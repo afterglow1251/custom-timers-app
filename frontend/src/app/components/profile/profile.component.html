@@ -1,0 +1,30 @@
+@if (user()) {
+<div class="profile-container" tabindex="0">
+  <button class="profile-button" type="button" (click)="toggleMenu()">
+    <ion-icon name="person-circle" color="primary" />
+  </button>
+
+  @if (menuOpen()) {
+  <ion-list
+    class="menu"
+    (click)="$event.stopPropagation()"
+    role="menu"
+    tabindex="-1"
+  >
+    <ion-item lines="none" role="none">
+      <span class="email" role="none">{{ user()!.email }}</span>
+    </ion-item>
+
+    <ion-item
+      button
+      class="logout"
+      (click)="logout()"
+      role="menuitem"
+      lines="none"
+    >
+      Log out
+    </ion-item>
+  </ion-list>
+  }
+</div>
+}

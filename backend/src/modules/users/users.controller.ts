@@ -2,6 +2,7 @@ import { UsersService, usersService } from './users.service';
 import { ContextWithIdParam, TypedContext } from '../../common/types/koa';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CheckEmailDto } from '../auth/dto/check-email.dto';
 
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -25,7 +26,7 @@ export class UsersController {
     ctx.body = user;
   }
 
-  async updateUser(ctx: TypedContext<UpdateUserDto>) {
+  async updateUser(ctx: ContextWithIdParam<UpdateUserDto>) {
     const userId = +ctx.params.id;
 
     const updatedUser = await this.usersService.update(

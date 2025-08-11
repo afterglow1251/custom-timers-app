@@ -4,6 +4,7 @@ import { validate } from '../../common/middlewares/validate.middleware';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { authMiddleware } from '../../common/middlewares/auth.middleware';
+import { CheckEmailDto } from '../auth/dto/check-email.dto';
 
 const router = new Router({ prefix: '/users' });
 
