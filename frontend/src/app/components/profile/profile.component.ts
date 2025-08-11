@@ -9,7 +9,6 @@ import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { UserStateService } from 'src/app/shared/state/user-state.service';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { APP_ROUTES } from 'src/app/shared/constants/routes';
 
 @Component({
   selector: 'app-profile',
@@ -20,7 +19,6 @@ import { APP_ROUTES } from 'src/app/shared/constants/routes';
 export class ProfileComponent {
   private userStateService = inject(UserStateService);
   private authService = inject(AuthService);
-  private router = inject(Router);
   private elementRef = inject(ElementRef<HTMLElement>);
 
   readonly user = this.userStateService.currentUser;
@@ -34,7 +32,6 @@ export class ProfileComponent {
   logout() {
     this.authService.logout();
     this.menuOpen.set(false);
-    this.router.navigate([APP_ROUTES.home]);
   }
 
   @HostListener('document:keydown.escape')

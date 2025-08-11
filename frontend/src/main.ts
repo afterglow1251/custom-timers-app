@@ -10,7 +10,6 @@ import {
   IonicRouteStrategy,
   provideIonicAngular,
 } from '@ionic/angular/standalone';
-
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 import { authInterceptor } from './app/core/services/auth/interceptors/auth.interceptor';
@@ -25,6 +24,7 @@ import {
   personCircle,
 } from 'ionicons/icons';
 import { importProvidersFrom } from '@angular/core';
+import { AuthService } from './app/core/services/auth/auth.service'; // Додайте імпорт
 
 addIcons({
   'arrow-back': arrowBack,
@@ -35,12 +35,24 @@ addIcons({
   'arrow-back-outline': arrowBackOutline,
 });
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    provideIonicAngular(),
-    provideRouter(routes, withPreloading(PreloadAllModules)),
-    provideHttpClient(withInterceptors([authInterceptor])),
-    importProvidersFrom(IonicStorageModule.forRoot()),
-  ],
+async function initializeApp(authService: AuthService) {
+  try {
+    await authService.ensureInitialized();
+    console.log('AuthService initialized successfully');
+  } catch (error) {
+    console.error('AuthService initialization failed', error);
+  }
+}
+
+const providers = [
+  { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+  provideIonicAngular(),
+  provideRouter(routes, withPreloading(PreloadAllModules)),
+  provideHttpClient(withInterceptors([authInterceptor])),
+  importProvidersFrom(IonicStorageModule.forRoot()),
+];
+
+bootstrapApplication(AppComponent, { providers }).then((appRef) => {
+  const authService = appRef.injector.get(AuthService);
+  initializeApp(authService).catch(console.error);
 });
