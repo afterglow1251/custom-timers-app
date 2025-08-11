@@ -1,6 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
-import { User } from '../types/user.types';
+import { UserNoPassword } from '../types/user.types';
 
 const USER_KEY = 'currentUser';
 
@@ -8,7 +8,7 @@ const USER_KEY = 'currentUser';
 export class UserStateService {
   private readonly storage = inject(Storage);
 
-  private readonly _currentUser = signal<User | null>(null);
+  private readonly _currentUser = signal<UserNoPassword | null>(null);
   readonly currentUser = this._currentUser.asReadonly();
 
   constructor() {
@@ -20,14 +20,14 @@ export class UserStateService {
     const storedUser = await this.storage.get(USER_KEY);
     if (storedUser) {
       try {
-        this._currentUser.set(storedUser as User);
+        this._currentUser.set(storedUser as UserNoPassword);
       } catch {
         this._currentUser.set(null);
       }
     }
   }
 
-  async setUser(user: User): Promise<void> {
+  async setUser(user: UserNoPassword): Promise<void> {
     this._currentUser.set(user);
     await this.storage.set(USER_KEY, user);
   }

@@ -21,4 +21,8 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full',
   },
+  {
+    path: 'timer-execution',
+    loadComponent: () => import('./pages/timer-execution/timer-execution.page').then( m => m.TimerExecutionPage)
+  },
 ];

@@ -1,3 +1,4 @@
+import { IonicStorageModule } from '@ionic/storage-angular';
 import { bootstrapApplication } from '@angular/platform-browser';
 import {
   RouteReuseStrategy,
@@ -23,6 +24,7 @@ import {
   mail,
   personCircle,
 } from 'ionicons/icons';
+import { importProvidersFrom } from '@angular/core';
 
 addIcons({
   'arrow-back': arrowBack,
@@ -39,5 +41,6 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withInterceptors([authInterceptor])),
+    importProvidersFrom(IonicStorageModule.forRoot()),
   ],
 });
